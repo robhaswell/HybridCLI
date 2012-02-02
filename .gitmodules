@@ -1,0 +1,3 @@
+[submodule "txhybridcluster"]
+	path = txhybridcluster
+	url = git@github.com:hybridlogic/txHybridCluster.git
