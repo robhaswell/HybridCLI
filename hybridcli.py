@@ -1,10 +1,9 @@
 #!/usr/bin/env python
-import os, sys, ConfigParser
+import os, ConfigParser
 
 from optparse import OptionParser
-from twisted.internet import reactor, defer
+from twisted.internet import reactor
 
-from txhybridcluster import utils
 from adminapi import Client
 
 site = "Default Site" # in future this will be an option
