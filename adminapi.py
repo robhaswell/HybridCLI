@@ -7,6 +7,7 @@ from twisted.web.http_headers import Headers
 from urllib import urlencode
 
 from simplejson import loads
+from simplejson.decoder import JSONDecodeError
 
 class Client(object):
     def __init__(self, domain, username, apikey):
@@ -42,7 +43,10 @@ class Client(object):
                     return failure.Failure(AdminApiConnectionError(response.code))
                 d = defer.Deferred()
                 def onDeliverBody(body):
-                    dFinish.callback(loads(body))
+                    try:
+                        dFinish.callback(loads(body))
+                    except JSONDecodeError:
+                        return failure.Failure(AdminApiDecodeError(body))
 
                 d.addCallback(onDeliverBody)
                 response.deliverBody(SimpleReceiver(d))
@@ -95,9 +99,25 @@ class SimpleReceiver(protocol.Protocol):
 
 
 class AdminApiConnectionError(Exception):
+
     def __init__(self, code):
         self.code = code
 
 
     def __str__(self):
         return "Admin API responded to connection with HTTP code %s" % (self.code,)
+
+    __repr__ = __str__
+
+
+
+class AdminApiDecodeError(Exception):
+
+    def __init__(self, body):
+        self.body = body
+
+
+    def __str__(self):
+        return 'Could not decode JSON response, received:\n\n%s' % (self.body,)
+
+    __repr__ = __str__

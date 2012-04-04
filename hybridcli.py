@@ -45,8 +45,31 @@ class RunCommand(Command):
             os.system('ssh -o "StrictHostKeyChecking no" %s@%s X_HYBRID_CLUSTER=1 %s' % (domain, self.domain, quote(self.cmd)))
 
 
+
+class CompleteListSites(Command):
+    """
+    Return a list of sites for use in bash-completion
+    """
+
+    def setOptions(self, options, args):
+        pass
+
+
+    def run(self):
+        api = self.getApiClient()
+        return api.listWebsites().addCallback(self.on_listWebsites).addCallback(lambda ign: reactor.stop())
+
+
+    def on_listWebsites(self, response):
+        domains = [ website['name'] for website in response['websites'] ]
+        domains.sort()
+        print " ".join(domains)
+
+
+
 commands = {
-        'run': RunCommand
+        'run': RunCommand,
+        '_complete_list_sites': CompleteListSites,
     }
 
 def main():
@@ -91,7 +114,7 @@ def main():
             command_object = commands[command](domain, username, apikey)
             command_object.setOptions(options, args)
         except KeyError:
-            raise UsageError("Unknown command '%s' %" % (command,))
+            raise UsageError("Unknown command '%s'" % (command,))
 
         reactor.callWhenRunning(command_object.run)
         reactor.run()
